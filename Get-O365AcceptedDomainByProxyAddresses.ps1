@@ -31,7 +31,7 @@
 
 Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Authentication Basic -Credential $global:Credential -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)  -AllowRedirection) -Prefix O365 -AllowClobber | Out-Null
 $arr = @()
-(get-mailbox).emailaddresses | ?{$_.PrefixString -eq "smtp"} | select SmtpAddress | %{$addr = $_.SmtpAddress.Split("@");$arr += $addr[1]}
+(get-mailbox -resultsize unlimited).emailaddresses | ?{$_.PrefixString -eq "smtp"} | select SmtpAddress | %{$addr = $_.SmtpAddress.Split("@");$arr += $addr[1]}
 $domains = $arr | select -unique
 $arr = @()
 $domains | %{If(Get-O365AcceptedDomain $_ -ErrorAction SilentlyContinue){$obj = New-Object PSObject;$obj | Add-Member -Value $_ -Name "Accepted Domain" -MemberType NoteProperty;$obj | Add-Member -Value "Found" -Name "Status" -MemberType NoteProperty;$arr += $obj}else{$obj = New-Object PSObject;$obj | Add-Member -Value $_ -Name "Accepted Domain" -MemberType NoteProperty;$obj | Add-Member -Value "Not Found" -Name "Status" -MemberType NoteProperty;$arr += $obj}}
