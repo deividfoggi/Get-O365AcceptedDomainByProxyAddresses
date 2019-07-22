@@ -14,20 +14,6 @@
 #
 #
 
-########################################################################################################################
-# MICROSOFT - PFE Team Brazil
-#
-# File : Get-O365AcceptedDomainByProxyAddresses.ps1
-# Version : 1.0
-# Creation date : Jul 15th, 2019
-# Modification date : Jul 15th, 2019
-#
-# Author: Deivid de Foggi - Office 365 PFE
-#
-# Exchange version: Exchange On Premises and Exchange Online
-# 
-#########################################################################################################################
-
 $inputObject = Get-Mailbox -ResultSize Unlimited -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
 Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Authentication Basic -Credential $global:Credential -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)  -AllowRedirection) -Prefix O365 -AllowClobber | Out-Null
 $arr = @()
