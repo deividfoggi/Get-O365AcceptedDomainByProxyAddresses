@@ -14,13 +14,37 @@
 #
 #
 
-$inputObject = Get-Mailbox -ResultSize Unlimited -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
 Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Authentication Basic -Credential $global:Credential -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)  -AllowRedirection) -Prefix O365 -AllowClobber | Out-Null
+
+$inputObject = Get-Mailbox -ResultSize Unlimited -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+
 $arr = @()
-($inputObject).emailaddresses | Where-Object{$_.PrefixString -eq "smtp"} | Select-Object SmtpAddress | ForEach-Object{$addr = $_.SmtpAddress.Split("@");$arr += $addr[1]}
+
+foreach ($user in $inputObject){
+    foreach($address in $user.emailaddresses){
+        If($address.PrefixString -eq "smtp"){
+            $addr = $address.SmtpAddress.Split("@");$arr += $addr[1]
+        }
+    }
+}
+
 $domains = $arr | Select-Object -Unique
 $arr = @()
-$domains | Where-Object{If(Get-O365AcceptedDomain $_ -ErrorAction SilentlyContinue){$obj = New-Object PSObject;$obj | Add-Member -Value $_ -Name "Accepted Domain" -MemberType NoteProperty;$obj | Add-Member -Value "Found" -Name "Status" -MemberType NoteProperty;$arr += $obj}else{$obj = New-Object PSObject;$obj | Add-Member -Value $_ -Name "Accepted Domain" -MemberType NoteProperty;$obj | Add-Member -Value "Not Found" -Name "Status" -MemberType NoteProperty;$arr += $obj}}
+
+$domains | Where-Object{
+    If(Get-O365AcceptedDomain $_ -ErrorAction SilentlyContinue){
+        $obj = New-Object PSObject
+        $obj | Add-Member -Value $_ -Name "Accepted Domain" -MemberType NoteProperty
+        $obj | Add-Member -Value "Found" -Name "Status" -MemberType NoteProperty
+        $arr += $obj
+    }
+    else
+    {
+        $obj = New-Object PSObject
+        $obj | Add-Member -Value $_ -Name "Accepted Domain" -MemberType NoteProperty
+        $obj | Add-Member -Value "Not Found" -Name "Status" -MemberType NoteProperty;$arr += $obj
+    }
+}
 $arr
 
 Get-PSSession | Remove-PSSession -Confirm:$false
